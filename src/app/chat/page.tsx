@@ -7,38 +7,28 @@ import Image from "next/image";
 // Ad Banner Component
 const AdBanner = ({ id }: { id: number }) => {
   const adRef = useRef<HTMLDivElement>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    if (adRef.current && typeof window !== "undefined") {
-      // Clear any existing content
-      adRef.current.innerHTML = "";
-
-      // Create container div for the ad
+    if (adRef.current && typeof window !== "undefined" && !isLoaded) {
+      // Create container div for the native ad with the exact ID the script expects
       const adContainer = document.createElement("div");
-      adContainer.id = `ad-container-${id}`;
+      adContainer.id = "container-6fe45ddbb9311b1165f8de9e7b3034fb";
       adRef.current.appendChild(adContainer);
-
-      // Set atOptions on window
-      (window as unknown as Record<string, unknown>).atOptions = {
-        key: "ec6ce08afd92f67dcfe0a5290e75d19a",
-        format: "iframe",
-        height: 90,
-        width: 728,
-        params: {},
-      };
 
       // Create and inject the script
       const script = document.createElement("script");
-      script.src = "https://www.highperformanceformat.com/ec6ce08afd92f67dcfe0a5290e75d19a/invoke.js";
+      script.src = "https://pl28588300.effectivegatecpm.com/6fe45ddbb9311b1165f8de9e7b3034fb/invoke.js";
       script.async = true;
-      adContainer.appendChild(script);
+      script.setAttribute("data-cfasync", "false");
+      adRef.current.appendChild(script);
+
+      setIsLoaded(true);
     }
-  }, [id]);
+  }, [id, isLoaded]);
 
   return (
-    <div ref={adRef} className="flex justify-center my-4 overflow-hidden">
-      <div className="max-w-full" />
-    </div>
+    <div ref={adRef} className="flex justify-center my-4 overflow-hidden" />
   );
 };
 
