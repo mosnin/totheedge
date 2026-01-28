@@ -3,6 +3,36 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Script from "next/script";
+
+// Ad Banner Component
+const AdBanner = () => {
+  const adRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (adRef.current && typeof window !== "undefined") {
+      // Set atOptions on window
+      (window as unknown as { atOptions: object }).atOptions = {
+        key: "ec6ce08afd92f67dcfe0a5290e75d19a",
+        format: "iframe",
+        height: 90,
+        width: 728,
+        params: {},
+      };
+    }
+  }, []);
+
+  return (
+    <div ref={adRef} className="flex justify-center my-4 overflow-hidden">
+      <div className="max-w-full">
+        <Script
+          src="https://www.highperformanceformat.com/ec6ce08afd92f67dcfe0a5290e75d19a/invoke.js"
+          strategy="lazyOnload"
+        />
+      </div>
+    </div>
+  );
+};
 
 interface Message {
   role: "user" | "assistant";
@@ -263,32 +293,35 @@ export default function ChatPage() {
           )}
 
           {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div className={`flex items-start gap-2 sm:gap-3 max-w-[90%] sm:max-w-[80%] ${message.role === "user" ? "flex-row-reverse" : ""}`}>
-                {message.role === "assistant" && (
-                  <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden flex-shrink-0 border border-[#8b5cf6]">
-                    <Image
-                      src={SOPHIA_PROFILE.avatar}
-                      alt={SOPHIA_PROFILE.name}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
+            <div key={index}>
+              <div
+                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div className={`flex items-start gap-2 sm:gap-3 max-w-[90%] sm:max-w-[80%] ${message.role === "user" ? "flex-row-reverse" : ""}`}>
+                  {message.role === "assistant" && (
+                    <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden flex-shrink-0 border border-[#8b5cf6]">
+                      <Image
+                        src={SOPHIA_PROFILE.avatar}
+                        alt={SOPHIA_PROFILE.name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  )}
+                  <div
+                    className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl text-sm sm:text-base ${
+                      message.role === "user"
+                        ? "bg-[#8b5cf6] text-white rounded-br-md"
+                        : "bg-[#12121a] border border-[#1e1e2e] rounded-bl-md"
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap">{message.content}</p>
                   </div>
-                )}
-                <div
-                  className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl text-sm sm:text-base ${
-                    message.role === "user"
-                      ? "bg-[#8b5cf6] text-white rounded-br-md"
-                      : "bg-[#12121a] border border-[#1e1e2e] rounded-bl-md"
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap">{message.content}</p>
                 </div>
               </div>
+              {/* Show ad after every 4 messages */}
+              {(index + 1) % 4 === 0 && index < messages.length - 1 && <AdBanner />}
             </div>
           ))}
 
