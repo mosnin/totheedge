@@ -40,6 +40,9 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model: "venice-uncensored",
         messages: messages,
+        venice_parameters: {
+          include_venice_system_prompt: false,
+        },
       }),
     });
 
