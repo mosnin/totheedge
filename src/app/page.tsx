@@ -85,7 +85,7 @@ export default function Home() {
               </svg>
             </div>
             <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-[#8b5cf6] to-[#a78bfa] bg-clip-text text-transparent">
-              To The Edge
+              Edging Hard
             </span>
           </div>
           <button
@@ -170,7 +170,7 @@ export default function Home() {
             By using this service, you acknowledge these limitations and agree to use it at your own discretion.
           </p>
           <p className="text-[#4b5563] text-[10px] sm:text-xs mt-3 sm:mt-4">
-            &copy; {new Date().getFullYear()} To The Edge. All rights reserved.
+            &copy; {new Date().getFullYear()} Edging Hard. All rights reserved.
           </p>
         </div>
       </footer>
