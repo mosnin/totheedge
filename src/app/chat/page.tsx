@@ -4,37 +4,18 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// Ad Banner Component - Single instance for the page
-const AdBanner = () => {
-  const adRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (adRef.current && typeof window !== "undefined") {
-      // Check if ad is already loaded
-      if (adRef.current.hasChildNodes()) return;
-
-      // Create container div for the native ad with the exact ID the script expects
-      const adContainer = document.createElement("div");
-      adContainer.id = "container-6fe45ddbb9311b1165f8de9e7b3034fb";
-      adRef.current.appendChild(adContainer);
-
-      // Create and inject the script
-      const script = document.createElement("script");
-      script.src = "https://pl28588300.effectivegatecpm.com/6fe45ddbb9311b1165f8de9e7b3034fb/invoke.js";
-      script.async = true;
-      script.setAttribute("data-cfasync", "false");
-      adRef.current.appendChild(script);
-    }
-  }, []);
-
-  return (
-    <div ref={adRef} className="flex justify-center my-4 overflow-hidden" />
-  );
-};
+// Sophia's unlockable photos
+const SOPHIA_PHOTOS = [
+  "https://cdn2.createporn.com/6978cd28d348f5ffec6aa280.jpg",
+  "https://cdn2.createporn.com/6978c576d348f5ffec60cff5.jpg",
+  "https://cdn2.createporn.com/69787534d348f5ffec109497.jpg",
+  "https://cdn2.createporn.com/6978acf6d348f5ffec437470.jpg",
+];
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  isPhoto?: boolean;
 }
 
 const SOPHIA_PROFILE = {
@@ -73,6 +54,7 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
+  const [unlockedPhotoIndex, setUnlockedPhotoIndex] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -162,6 +144,20 @@ export default function ChatPage() {
   const handleNewChat = () => {
     setMessages([]);
     setHasStarted(false);
+    setUnlockedPhotoIndex(0);
+  };
+
+  const handleUnlockPhoto = () => {
+    if (unlockedPhotoIndex >= SOPHIA_PHOTOS.length) return;
+
+    const photoUrl = SOPHIA_PHOTOS[unlockedPhotoIndex];
+    const photoMessage: Message = {
+      role: "assistant",
+      content: photoUrl,
+      isPhoto: true,
+    };
+    setMessages([...messages, photoMessage]);
+    setUnlockedPhotoIndex(unlockedPhotoIndex + 1);
   };
 
   const handleBackHome = () => {
@@ -307,15 +303,28 @@ export default function ChatPage() {
                       />
                     </div>
                   )}
-                  <div
-                    className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl text-sm sm:text-base ${
-                      message.role === "user"
-                        ? "bg-[#8b5cf6] text-white rounded-br-md"
-                        : "bg-[#12121a] border border-[#1e1e2e] rounded-bl-md"
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap">{message.content}</p>
-                  </div>
+                  {message.isPhoto ? (
+                    <div className="rounded-2xl overflow-hidden border border-[#8b5cf6]">
+                      <Image
+                        src={message.content}
+                        alt="Sophia's photo"
+                        width={300}
+                        height={400}
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl text-sm sm:text-base ${
+                        message.role === "user"
+                          ? "bg-[#8b5cf6] text-white rounded-br-md"
+                          : "bg-[#12121a] border border-[#1e1e2e] rounded-bl-md"
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -347,15 +356,6 @@ export default function ChatPage() {
           <div ref={messagesEndRef} />
         </div>
       </main>
-
-      {/* Ad Banner */}
-      {hasStarted && (
-        <div className="border-t border-[#1e1e2e] px-3 sm:px-4 pt-3">
-          <div className="max-w-4xl mx-auto">
-            <AdBanner />
-          </div>
-        </div>
-      )}
 
       {/* Footer */}
       <footer className="border-t border-[#1e1e2e] px-3 sm:px-4 py-3 sm:py-4">
@@ -394,6 +394,20 @@ export default function ChatPage() {
                   I&apos;m About to Cum
                 </button>
               </div>
+
+              {/* Unlock Photo Button */}
+              {unlockedPhotoIndex < SOPHIA_PHOTOS.length && (
+                <button
+                  onClick={handleUnlockPhoto}
+                  disabled={isLoading}
+                  className="w-full mb-3 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-sm sm:text-base rounded-xl hover:from-pink-600 hover:to-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Unlock Photo ({SOPHIA_PHOTOS.length - unlockedPhotoIndex} remaining)
+                </button>
+              )}
 
               {/* Text Input */}
               <form onSubmit={sendMessage} className="flex gap-2 sm:gap-3">
