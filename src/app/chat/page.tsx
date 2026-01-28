@@ -44,6 +44,7 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [hasStarted, setHasStarted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -65,6 +66,10 @@ export default function ChatPage() {
   const handleDismissInstructions = () => {
     sessionStorage.setItem("seenInstructions", "true");
     setShowInstructions(false);
+  };
+
+  const handleShowInstructions = () => {
+    setShowInstructions(true);
   };
 
   const sendMessageWithContent = async (content: string) => {
@@ -121,8 +126,14 @@ export default function ChatPage() {
     await sendMessageWithContent(action);
   };
 
+  const handleStart = async () => {
+    setHasStarted(true);
+    await sendMessageWithContent("Start");
+  };
+
   const handleNewChat = () => {
     setMessages([]);
+    setHasStarted(false);
   };
 
   const handleBackHome = () => {
@@ -155,7 +166,7 @@ export default function ChatPage() {
               <div className="text-left space-y-3 mb-6">
                 <div className="flex items-start gap-3">
                   <span className="w-6 h-6 rounded-full bg-[#8b5cf6] text-white text-sm flex items-center justify-center flex-shrink-0">1</span>
-                  <p className="text-[#a0a0a5]">Describe your request to Sophia</p>
+                  <p className="text-[#a0a0a5]">Click Start to begin your session with Sophia</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="w-6 h-6 rounded-full bg-[#8b5cf6] text-white text-sm flex items-center justify-center flex-shrink-0">2</span>
@@ -206,16 +217,27 @@ export default function ChatPage() {
               </p>
             </div>
           </div>
-          <button
-            onClick={handleNewChat}
-            className="text-[#6b7280] hover:text-white transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer"
-            title="New Chat"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            <span className="hidden sm:inline">New</span>
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={handleShowInstructions}
+              className="text-[#6b7280] hover:text-white transition-colors cursor-pointer"
+              title="How to Use"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+            <button
+              onClick={handleNewChat}
+              className="text-[#6b7280] hover:text-white transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer"
+              title="New Chat"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span className="hidden sm:inline">New</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -235,7 +257,7 @@ export default function ChatPage() {
               </div>
               <h2 className="text-lg sm:text-xl font-semibold mb-2">Chat with {SOPHIA_PROFILE.name}</h2>
               <p className="text-[#6b7280] text-sm sm:text-base">
-                Say hi to start the conversation!
+                Click Start to begin your session
               </p>
             </div>
           )}
@@ -297,50 +319,69 @@ export default function ChatPage() {
         </div>
       </main>
 
-      {/* Input */}
+      {/* Footer */}
       <footer className="border-t border-[#1e1e2e] px-3 sm:px-4 py-3 sm:py-4">
         <div className="max-w-4xl mx-auto">
-          {/* Quick Action Buttons */}
-          <div className="flex gap-2 sm:gap-3 mb-3">
-            <button
-              onClick={() => handleQuickAction("Keep going")}
-              disabled={isLoading}
-              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#1e1e2e] text-white text-sm sm:text-base rounded-xl hover:bg-[#2a2a3e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border border-[#2e2e4e]"
-            >
-              Keep Going
-            </button>
-            <button
-              onClick={() => handleQuickAction("I'm about to cum")}
-              disabled={isLoading}
-              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#8b5cf6] text-white text-sm sm:text-base rounded-xl hover:bg-[#a78bfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              I&apos;m About to Cum
-            </button>
-          </div>
+          {!hasStarted ? (
+            /* Start Button - shown before session begins */
+            <div className="flex flex-col items-center">
+              <button
+                onClick={handleStart}
+                disabled={isLoading}
+                className="w-full max-w-xs px-8 py-4 bg-[#8b5cf6] text-white text-lg font-semibold rounded-xl hover:bg-[#a78bfa] transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
+              >
+                {isLoading ? "Starting..." : "Start"}
+              </button>
+              <p className="text-center text-[#4b5563] text-[10px] sm:text-xs mt-3">
+                Messages are stored locally and cleared on refresh
+              </p>
+            </div>
+          ) : (
+            /* Chat Controls - shown after session begins */
+            <>
+              {/* Quick Action Buttons */}
+              <div className="flex gap-2 sm:gap-3 mb-3">
+                <button
+                  onClick={() => handleQuickAction("Keep going")}
+                  disabled={isLoading}
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#1e1e2e] text-white text-sm sm:text-base rounded-xl hover:bg-[#2a2a3e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border border-[#2e2e4e]"
+                >
+                  Keep Going
+                </button>
+                <button
+                  onClick={() => handleQuickAction("I'm about to cum")}
+                  disabled={isLoading}
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#8b5cf6] text-white text-sm sm:text-base rounded-xl hover:bg-[#a78bfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  I&apos;m About to Cum
+                </button>
+              </div>
 
-          {/* Text Input */}
-          <form onSubmit={sendMessage} className="flex gap-2 sm:gap-3">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message..."
-              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-[#12121a] border border-[#1e1e2e] rounded-xl focus:outline-none focus:border-[#8b5cf6] transition-colors placeholder-[#6b7280] text-sm sm:text-base"
-              disabled={isLoading}
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#8b5cf6] text-white rounded-xl hover:bg-[#a78bfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
-          </form>
-          <p className="text-center text-[#4b5563] text-[10px] sm:text-xs mt-2 sm:mt-3">
-            Messages are stored locally and cleared on refresh
-          </p>
+              {/* Text Input */}
+              <form onSubmit={sendMessage} className="flex gap-2 sm:gap-3">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type a message..."
+                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-[#12121a] border border-[#1e1e2e] rounded-xl focus:outline-none focus:border-[#8b5cf6] transition-colors placeholder-[#6b7280] text-sm sm:text-base"
+                  disabled={isLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={!input.trim() || isLoading}
+                  className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#8b5cf6] text-white rounded-xl hover:bg-[#a78bfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </button>
+              </form>
+              <p className="text-center text-[#4b5563] text-[10px] sm:text-xs mt-2 sm:mt-3">
+                Messages are stored locally and cleared on refresh
+              </p>
+            </>
+          )}
         </div>
       </footer>
     </div>
