@@ -6,11 +6,11 @@ import Image from "next/image";
 import {
   onUserMessage,
   onAiResponse,
-  mountBanner,
-  unmountBanner,
   showInterstitial,
   showUnlockOverlay,
   resetAdState,
+  BANNER_ZONE_ID,
+  serveBannerAd,
 } from "./adManager";
 
 // Sophia's unlockable photos
@@ -66,20 +66,7 @@ export default function ChatPage() {
   const [unlockedPhotoIndex, setUnlockedPhotoIndex] = useState(0);
   const [bannerVisible, setBannerVisible] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const bannerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  // Mount/unmount banner ad when visibility changes
-  const updateBanner = useCallback((visible: boolean) => {
-    setBannerVisible(visible);
-    if (bannerRef.current) {
-      if (visible) {
-        mountBanner(bannerRef.current);
-      } else {
-        unmountBanner(bannerRef.current);
-      }
-    }
-  }, []);
 
   // Process ad triggers after AI responds
   const processAdTriggers = useCallback(
@@ -87,7 +74,7 @@ export default function ChatPage() {
       const actions = onAiResponse(aiResponse);
 
       if (actions.showBanner) {
-        updateBanner(true);
+        setBannerVisible(true);
       }
 
       if (actions.showInterstitial) {
@@ -115,7 +102,7 @@ export default function ChatPage() {
         }, 1000);
       }
     },
-    [unlockedPhotoIndex, updateBanner],
+    [unlockedPhotoIndex],
   );
 
   useEffect(() => {
@@ -132,6 +119,13 @@ export default function ChatPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Serve banner ad when it becomes visible (after React renders the <ins> element)
+  useEffect(() => {
+    if (bannerVisible) {
+      serveBannerAd();
+    }
+  }, [bannerVisible]);
 
   const handleDismissInstructions = () => {
     sessionStorage.setItem("seenInstructions", "true");
@@ -212,7 +206,7 @@ export default function ChatPage() {
     setHasStarted(false);
     setUnlockedPhotoIndex(0);
     resetAdState();
-    updateBanner(false);
+    setBannerVisible(false);
   };
 
   const handleUnlockPhoto = () => {
@@ -512,10 +506,11 @@ export default function ChatPage() {
       </footer>
 
       {/* Banner Ad Slot */}
-      <div
-        ref={bannerRef}
-        className={`${bannerVisible ? "min-h-[50px]" : ""} flex items-center justify-center overflow-hidden`}
-      />
+      {bannerVisible && (
+        <div className="flex items-center justify-center overflow-hidden min-h-[50px] py-2">
+          <ins className="eas6a97888e35" data-zoneid={BANNER_ZONE_ID}></ins>
+        </div>
+      )}
 
       {/* Legal Footer */}
       <div className="border-t border-[#1e1e2e] py-4 px-3 sm:px-4">

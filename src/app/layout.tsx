@@ -60,8 +60,6 @@ window.document.querySelectorAll||(document.querySelectorAll=document.body.query
 })();
 ` }} />
         <Script id="exoclick-ad-provider" src="https://a.pemsrv.com/ad-provider.js" strategy="afterInteractive" async />
-        <ins className="eas6a97888e35" data-zoneid="5841084"></ins>
-        <Script id="exoclick-ad-serve" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: `(AdProvider = window.AdProvider || []).push({"serve": {}});` }} />
         {children}
         <Analytics />
       </body>

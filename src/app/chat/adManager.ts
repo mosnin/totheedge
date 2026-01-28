@@ -17,6 +17,8 @@ const AD_ZONES = {
   unlock: "5841076",
 } as const;
 
+export const BANNER_ZONE_ID = AD_ZONES.banner;
+
 const VAST_URL = `https://s.magsrv.com/v1/vast.php?idzone=${AD_ZONES.unlock}`;
 
 const BANNER_INTERVAL = 4; // show banner every N user messages (4-5)
@@ -106,28 +108,12 @@ export function shouldShowBanner(): boolean {
   );
 }
 
-export function createBannerHtml(): string {
-  return `<ins class="eas6a97888e35" data-zoneid="${AD_ZONES.banner}"></ins>`;
-}
-
-export function mountBanner(container: HTMLElement) {
+export function serveBannerAd() {
   if (state.adblockDetected) return;
+  if (typeof window === "undefined") return;
   ensureAdProvider();
-
-  // Clear previous banner to avoid duplicates
-  container.innerHTML = "";
-
-  const ins = document.createElement("ins");
-  ins.className = "eas6a97888e35";
-  ins.setAttribute("data-zoneid", AD_ZONES.banner);
-  container.appendChild(ins);
-
   serveAdZone();
   trackEvent("ad_triggered", AD_ZONES.banner);
-}
-
-export function unmountBanner(container: HTMLElement) {
-  container.innerHTML = "";
 }
 
 // --- Interstitial Ad (fullpage overlay) ---
