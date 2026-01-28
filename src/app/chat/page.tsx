@@ -43,6 +43,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -51,17 +52,25 @@ export default function ChatPage() {
     if (agreed !== "true") {
       router.push("/");
     }
+    const seenInstructions = sessionStorage.getItem("seenInstructions");
+    if (seenInstructions === "true") {
+      setShowInstructions(false);
+    }
   }, [router]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const handleDismissInstructions = () => {
+    sessionStorage.setItem("seenInstructions", "true");
+    setShowInstructions(false);
+  };
 
-    const userMessage: Message = { role: "user", content: input.trim() };
+  const sendMessageWithContent = async (content: string) => {
+    if (isLoading) return;
+
+    const userMessage: Message = { role: "user", content };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
@@ -102,26 +111,86 @@ export default function ChatPage() {
     }
   };
 
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+    await sendMessageWithContent(input.trim());
+  };
+
+  const handleQuickAction = async (action: string) => {
+    await sendMessageWithContent(action);
+  };
+
+  const handleNewChat = () => {
+    setMessages([]);
+  };
+
   const handleBackHome = () => {
     router.push("/");
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0a0f]">
+      {/* Instructions Modal */}
+      {showInstructions && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 animate-fadeIn p-4">
+          <div className="bg-[#12121a] border border-[#1e1e2e] rounded-2xl p-6 sm:p-8 max-w-md w-full animate-slideUp">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#8b5cf6]/20 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-[#8b5cf6]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold mb-4">How to Use</h2>
+              <div className="text-left space-y-3 mb-6">
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-[#8b5cf6] text-white text-sm flex items-center justify-center flex-shrink-0">1</span>
+                  <p className="text-[#a0a0a5]">Describe your request to Sophia</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-[#8b5cf6] text-white text-sm flex items-center justify-center flex-shrink-0">2</span>
+                  <p className="text-[#a0a0a5]">Click &quot;Keep Going&quot; for more instructions</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-[#8b5cf6] text-white text-sm flex items-center justify-center flex-shrink-0">3</span>
+                  <p className="text-[#a0a0a5]">Click &quot;I&apos;m About to Cum&quot; when ready to finish</p>
+                </div>
+              </div>
+              <button
+                onClick={handleDismissInstructions}
+                className="w-full px-6 py-3 rounded-xl bg-[#8b5cf6] text-white hover:bg-[#a78bfa] transition-colors cursor-pointer"
+              >
+                Got It
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="border-b border-[#1e1e2e] px-4 py-3">
+      <header className="border-b border-[#1e1e2e] px-3 sm:px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <button
             onClick={handleBackHome}
-            className="text-[#6b7280] hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+            className="text-[#6b7280] hover:text-white transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back
+            <span className="hidden sm:inline">Back</span>
           </button>
-          <div className="flex items-center gap-3">
-            <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#8b5cf6]">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-[#8b5cf6]">
               <Image
                 src={SOPHIA_PROFILE.avatar}
                 alt={SOPHIA_PROFILE.name}
@@ -131,22 +200,31 @@ export default function ChatPage() {
               />
             </div>
             <div>
-              <h1 className="font-semibold">{SOPHIA_PROFILE.name}</h1>
-              <p className="text-xs text-[#6b7280]">
+              <h1 className="font-semibold text-sm sm:text-base">{SOPHIA_PROFILE.name}</h1>
+              <p className="text-[10px] sm:text-xs text-[#6b7280]">
                 {SOPHIA_PROFILE.age} • {SOPHIA_PROFILE.description}
               </p>
             </div>
           </div>
-          <div className="w-16"></div>
+          <button
+            onClick={handleNewChat}
+            className="text-[#6b7280] hover:text-white transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer"
+            title="New Chat"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span className="hidden sm:inline">New</span>
+          </button>
         </div>
       </header>
 
       {/* Messages */}
-      <main className="flex-1 overflow-y-auto px-4 py-6">
+      <main className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6">
         <div className="max-w-4xl mx-auto space-y-4">
           {messages.length === 0 && (
-            <div className="text-center py-12">
-              <div className="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-[#8b5cf6]">
+            <div className="text-center py-8 sm:py-12">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-[#8b5cf6]">
                 <Image
                   src={SOPHIA_PROFILE.avatar}
                   alt={SOPHIA_PROFILE.name}
@@ -155,8 +233,8 @@ export default function ChatPage() {
                   unoptimized
                 />
               </div>
-              <h2 className="text-xl font-semibold mb-2">Chat with {SOPHIA_PROFILE.name}</h2>
-              <p className="text-[#6b7280]">
+              <h2 className="text-lg sm:text-xl font-semibold mb-2">Chat with {SOPHIA_PROFILE.name}</h2>
+              <p className="text-[#6b7280] text-sm sm:text-base">
                 Say hi to start the conversation!
               </p>
             </div>
@@ -167,9 +245,9 @@ export default function ChatPage() {
               key={index}
               className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              <div className={`flex items-start gap-3 max-w-[80%] ${message.role === "user" ? "flex-row-reverse" : ""}`}>
+              <div className={`flex items-start gap-2 sm:gap-3 max-w-[90%] sm:max-w-[80%] ${message.role === "user" ? "flex-row-reverse" : ""}`}>
                 {message.role === "assistant" && (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[#8b5cf6]">
+                  <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden flex-shrink-0 border border-[#8b5cf6]">
                     <Image
                       src={SOPHIA_PROFILE.avatar}
                       alt={SOPHIA_PROFILE.name}
@@ -180,7 +258,7 @@ export default function ChatPage() {
                   </div>
                 )}
                 <div
-                  className={`px-4 py-3 rounded-2xl ${
+                  className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl text-sm sm:text-base ${
                     message.role === "user"
                       ? "bg-[#8b5cf6] text-white rounded-br-md"
                       : "bg-[#12121a] border border-[#1e1e2e] rounded-bl-md"
@@ -194,8 +272,8 @@ export default function ChatPage() {
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="flex items-start gap-3">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[#8b5cf6]">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden flex-shrink-0 border border-[#8b5cf6]">
                   <Image
                     src={SOPHIA_PROFILE.avatar}
                     alt={SOPHIA_PROFILE.name}
@@ -204,7 +282,7 @@ export default function ChatPage() {
                     unoptimized
                   />
                 </div>
-                <div className="px-4 py-3 rounded-2xl bg-[#12121a] border border-[#1e1e2e] rounded-bl-md">
+                <div className="px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-[#12121a] border border-[#1e1e2e] rounded-bl-md">
                   <div className="flex gap-1">
                     <span className="w-2 h-2 bg-[#6b7280] rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></span>
                     <span className="w-2 h-2 bg-[#6b7280] rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></span>
@@ -220,29 +298,50 @@ export default function ChatPage() {
       </main>
 
       {/* Input */}
-      <footer className="border-t border-[#1e1e2e] px-4 py-4">
-        <form onSubmit={sendMessage} className="max-w-4xl mx-auto flex gap-3">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 px-4 py-3 bg-[#12121a] border border-[#1e1e2e] rounded-xl focus:outline-none focus:border-[#8b5cf6] transition-colors placeholder-[#6b7280]"
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isLoading}
-            className="px-6 py-3 bg-[#8b5cf6] text-white rounded-xl hover:bg-[#a78bfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
-        </form>
-        <p className="text-center text-[#4b5563] text-xs mt-3">
-          Messages are stored locally and cleared on refresh
-        </p>
+      <footer className="border-t border-[#1e1e2e] px-3 sm:px-4 py-3 sm:py-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Quick Action Buttons */}
+          <div className="flex gap-2 sm:gap-3 mb-3">
+            <button
+              onClick={() => handleQuickAction("Keep going")}
+              disabled={isLoading}
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#1e1e2e] text-white text-sm sm:text-base rounded-xl hover:bg-[#2a2a3e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border border-[#2e2e4e]"
+            >
+              Keep Going
+            </button>
+            <button
+              onClick={() => handleQuickAction("I'm about to cum")}
+              disabled={isLoading}
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#8b5cf6] text-white text-sm sm:text-base rounded-xl hover:bg-[#a78bfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              I&apos;m About to Cum
+            </button>
+          </div>
+
+          {/* Text Input */}
+          <form onSubmit={sendMessage} className="flex gap-2 sm:gap-3">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-[#12121a] border border-[#1e1e2e] rounded-xl focus:outline-none focus:border-[#8b5cf6] transition-colors placeholder-[#6b7280] text-sm sm:text-base"
+              disabled={isLoading}
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#8b5cf6] text-white rounded-xl hover:bg-[#a78bfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
+          </form>
+          <p className="text-center text-[#4b5563] text-[10px] sm:text-xs mt-2 sm:mt-3">
+            Messages are stored locally and cleared on refresh
+          </p>
+        </div>
       </footer>
     </div>
   );
