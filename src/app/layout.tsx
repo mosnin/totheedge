@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon.svg",
   },
+  other: {
+    "6a97888e-site-verification": "6d2c2c302f93c461bd91b205199de46c",
+  },
 };
 
 export default function RootLayout({
