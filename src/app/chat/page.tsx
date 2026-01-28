@@ -436,6 +436,24 @@ export default function ChatPage() {
           )}
         </div>
       </footer>
+
+      {/* Legal Footer */}
+      <div className="border-t border-[#1e1e2e] py-4 px-3 sm:px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-[#6b7280] text-[10px] sm:text-xs">
+            <strong>18 U.S.C. 2257 Compliance Statement:</strong> All models, actors, actresses and other persons that appear in any visual depiction of sexually explicit conduct appearing or otherwise contained on this website were over the age of eighteen (18) years at the time of the creation of such depictions. All content and images are in full compliance with the requirements of 18 U.S.C. 2257 and associated regulations.
+          </p>
+          <p className="text-[#6b7280] text-[10px] sm:text-xs mt-2">
+            <strong>DMCA Notice:</strong> If you believe that content on this site infringes your copyright, please contact us at{" "}
+            <a href="mailto:help@edginghard.com" className="text-[#8b5cf6] hover:text-[#a78bfa] transition-colors underline">
+              help@edginghard.com
+            </a>
+          </p>
+          <p className="text-[#4b5563] text-[10px] mt-2">
+            &copy; {new Date().getFullYear()} Edging Hard. All rights reserved.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
