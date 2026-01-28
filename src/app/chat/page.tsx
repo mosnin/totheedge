@@ -320,8 +320,8 @@ export default function ChatPage() {
                   </div>
                 </div>
               </div>
-              {/* Show ad after every 4 messages */}
-              {(index + 1) % 4 === 0 && index < messages.length - 1 && <AdBanner />}
+              {/* Show ad after every message */}
+              {index < messages.length - 1 && <AdBanner />}
             </div>
           ))}
 
