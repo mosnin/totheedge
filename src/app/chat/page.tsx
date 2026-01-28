@@ -3,33 +3,41 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Script from "next/script";
 
 // Ad Banner Component
-const AdBanner = () => {
+const AdBanner = ({ id }: { id: number }) => {
   const adRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (adRef.current && typeof window !== "undefined") {
+      // Clear any existing content
+      adRef.current.innerHTML = "";
+
+      // Create container div for the ad
+      const adContainer = document.createElement("div");
+      adContainer.id = `ad-container-${id}`;
+      adRef.current.appendChild(adContainer);
+
       // Set atOptions on window
-      (window as unknown as { atOptions: object }).atOptions = {
+      (window as unknown as Record<string, unknown>).atOptions = {
         key: "ec6ce08afd92f67dcfe0a5290e75d19a",
         format: "iframe",
         height: 90,
         width: 728,
         params: {},
       };
+
+      // Create and inject the script
+      const script = document.createElement("script");
+      script.src = "https://www.highperformanceformat.com/ec6ce08afd92f67dcfe0a5290e75d19a/invoke.js";
+      script.async = true;
+      adContainer.appendChild(script);
     }
-  }, []);
+  }, [id]);
 
   return (
     <div ref={adRef} className="flex justify-center my-4 overflow-hidden">
-      <div className="max-w-full">
-        <Script
-          src="https://www.highperformanceformat.com/ec6ce08afd92f67dcfe0a5290e75d19a/invoke.js"
-          strategy="lazyOnload"
-        />
-      </div>
+      <div className="max-w-full" />
     </div>
   );
 };
@@ -321,7 +329,7 @@ export default function ChatPage() {
                 </div>
               </div>
               {/* Show ad after every message */}
-              {index < messages.length - 1 && <AdBanner />}
+              {index < messages.length - 1 && <AdBanner id={index} />}
             </div>
           ))}
 
