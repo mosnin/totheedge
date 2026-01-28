@@ -4,13 +4,15 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// Ad Banner Component
-const AdBanner = ({ id }: { id: number }) => {
+// Ad Banner Component - Single instance for the page
+const AdBanner = () => {
   const adRef = useRef<HTMLDivElement>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    if (adRef.current && typeof window !== "undefined" && !isLoaded) {
+    if (adRef.current && typeof window !== "undefined") {
+      // Check if ad is already loaded
+      if (adRef.current.hasChildNodes()) return;
+
       // Create container div for the native ad with the exact ID the script expects
       const adContainer = document.createElement("div");
       adContainer.id = "container-6fe45ddbb9311b1165f8de9e7b3034fb";
@@ -22,10 +24,8 @@ const AdBanner = ({ id }: { id: number }) => {
       script.async = true;
       script.setAttribute("data-cfasync", "false");
       adRef.current.appendChild(script);
-
-      setIsLoaded(true);
     }
-  }, [id, isLoaded]);
+  }, []);
 
   return (
     <div ref={adRef} className="flex justify-center my-4 overflow-hidden" />
@@ -318,8 +318,6 @@ export default function ChatPage() {
                   </div>
                 </div>
               </div>
-              {/* Show ad after every message */}
-              {index < messages.length - 1 && <AdBanner id={index} />}
             </div>
           ))}
 
@@ -349,6 +347,15 @@ export default function ChatPage() {
           <div ref={messagesEndRef} />
         </div>
       </main>
+
+      {/* Ad Banner */}
+      {hasStarted && (
+        <div className="border-t border-[#1e1e2e] px-3 sm:px-4 pt-3">
+          <div className="max-w-4xl mx-auto">
+            <AdBanner />
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-[#1e1e2e] px-3 sm:px-4 py-3 sm:py-4">
