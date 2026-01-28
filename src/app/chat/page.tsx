@@ -1,8 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import {
+  onUserMessage,
+  onAiResponse,
+  mountBanner,
+  unmountBanner,
+  showInterstitial,
+  showUnlockOverlay,
+  resetAdState,
+} from "./adManager";
 
 // Sophia's unlockable photos
 const SOPHIA_PHOTOS = [
@@ -55,8 +64,59 @@ export default function ChatPage() {
   const [showInstructions, setShowInstructions] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
   const [unlockedPhotoIndex, setUnlockedPhotoIndex] = useState(0);
+  const [bannerVisible, setBannerVisible] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Mount/unmount banner ad when visibility changes
+  const updateBanner = useCallback((visible: boolean) => {
+    setBannerVisible(visible);
+    if (bannerRef.current) {
+      if (visible) {
+        mountBanner(bannerRef.current);
+      } else {
+        unmountBanner(bannerRef.current);
+      }
+    }
+  }, []);
+
+  // Process ad triggers after AI responds
+  const processAdTriggers = useCallback(
+    (aiResponse: string, currentMessages: Message[]) => {
+      const actions = onAiResponse(aiResponse);
+
+      if (actions.showBanner) {
+        updateBanner(true);
+      }
+
+      if (actions.showInterstitial) {
+        // Small delay so the message renders first
+        setTimeout(() => showInterstitial(), 500);
+      }
+
+      if (
+        actions.showUnlockPrompt &&
+        unlockedPhotoIndex < SOPHIA_PHOTOS.length
+      ) {
+        const nextPhotoUrl = SOPHIA_PHOTOS[unlockedPhotoIndex];
+        setTimeout(() => {
+          showUnlockOverlay(nextPhotoUrl, (result) => {
+            if (result.completed && result.photoUrl) {
+              const photoMessage: Message = {
+                role: "assistant",
+                content: result.photoUrl,
+                isPhoto: true,
+              };
+              setMessages([...currentMessages, photoMessage]);
+              setUnlockedPhotoIndex((prev) => prev + 1);
+            }
+          });
+        }, 1000);
+      }
+    },
+    [unlockedPhotoIndex, updateBanner],
+  );
 
   useEffect(() => {
     const agreed = sessionStorage.getItem("ageVerified");
@@ -85,6 +145,8 @@ export default function ChatPage() {
   const sendMessageWithContent = async (content: string) => {
     if (isLoading) return;
 
+    onUserMessage();
+
     const userMessage: Message = { role: "user", content };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
@@ -112,7 +174,11 @@ export default function ChatPage() {
         role: "assistant",
         content: data.message,
       };
-      setMessages([...newMessages, assistantMessage]);
+      const updatedMessages = [...newMessages, assistantMessage];
+      setMessages(updatedMessages);
+
+      // Process ad triggers based on AI response
+      processAdTriggers(data.message, updatedMessages);
     } catch {
       setMessages([
         ...newMessages,
@@ -145,19 +211,27 @@ export default function ChatPage() {
     setMessages([]);
     setHasStarted(false);
     setUnlockedPhotoIndex(0);
+    resetAdState();
+    updateBanner(false);
   };
 
   const handleUnlockPhoto = () => {
     if (unlockedPhotoIndex >= SOPHIA_PHOTOS.length) return;
 
     const photoUrl = SOPHIA_PHOTOS[unlockedPhotoIndex];
-    const photoMessage: Message = {
-      role: "assistant",
-      content: photoUrl,
-      isPhoto: true,
-    };
-    setMessages([...messages, photoMessage]);
-    setUnlockedPhotoIndex(unlockedPhotoIndex + 1);
+
+    // Show rewarded ad before unlocking
+    showUnlockOverlay(photoUrl, (result) => {
+      if (result.completed && result.photoUrl) {
+        const photoMessage: Message = {
+          role: "assistant",
+          content: result.photoUrl,
+          isPhoto: true,
+        };
+        setMessages((prev) => [...prev, photoMessage]);
+        setUnlockedPhotoIndex((prev) => prev + 1);
+      }
+    });
   };
 
   const handleBackHome = () => {
@@ -436,6 +510,12 @@ export default function ChatPage() {
           )}
         </div>
       </footer>
+
+      {/* Banner Ad Slot */}
+      <div
+        ref={bannerRef}
+        className={`${bannerVisible ? "min-h-[50px]" : ""} flex items-center justify-center overflow-hidden`}
+      />
 
       {/* Legal Footer */}
       <div className="border-t border-[#1e1e2e] py-4 px-3 sm:px-4">
