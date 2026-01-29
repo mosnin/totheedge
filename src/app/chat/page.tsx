@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Script from "next/script";
 import {
   onUserMessage,
   onAiResponse,
@@ -281,7 +282,7 @@ export default function ChatPage() {
       )}
 
       {/* Header */}
-      <header className="border-b border-[#1e1e2e] px-3 sm:px-4 py-3">
+      <header className="sticky top-0 z-40 bg-[#0a0a0f] border-b border-[#1e1e2e] px-3 sm:px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <button
             onClick={handleBackHome}
@@ -512,23 +513,25 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* Legal Footer */}
-      <div className="border-t border-[#1e1e2e] py-4 px-3 sm:px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-[#6b7280] text-[10px] sm:text-xs">
-            <strong>18 U.S.C. 2257 Compliance Statement:</strong> All models, actors, actresses and other persons that appear in any visual depiction of sexually explicit conduct appearing or otherwise contained on this website were over the age of eighteen (18) years at the time of the creation of such depictions. All content and images are in full compliance with the requirements of 18 U.S.C. 2257 and associated regulations.
-          </p>
-          <p className="text-[#6b7280] text-[10px] sm:text-xs mt-2">
-            <strong>DMCA Notice:</strong> If you believe that content on this site infringes your copyright, please contact us at{" "}
-            <a href="mailto:help@edginghard.com" className="text-[#8b5cf6] hover:text-[#a78bfa] transition-colors underline">
-              help@edginghard.com
-            </a>
-          </p>
-          <p className="text-[#4b5563] text-[10px] mt-2">
-            &copy; {new Date().getFullYear()} Edging Hard. All rights reserved.
-          </p>
-        </div>
-      </div>
+      {/* Popunder Ad - only loads on chat page so it doesn't interfere with age verification */}
+      <Script
+        id="exoclick-popunder"
+        src="//a.pemsrv.com/popunder1000.js"
+        strategy="afterInteractive"
+        data-exo-idzone="5841070"
+        data-exo-frequency_period="720"
+        data-exo-frequency_count="1"
+        data-exo-trigger_method="3"
+        data-exo-trigger_class=""
+        data-exo-trigger_delay="0"
+        data-exo-capping_enabled="true"
+        data-exo-chrome_enabled="true"
+        data-exo-new_tab="false"
+        data-exo-popup_force="false"
+        data-exo-popup_fallback="false"
+        data-exo-tcf_enabled="true"
+        data-exo-only_inline="false"
+      />
     </div>
   );
 }
