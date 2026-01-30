@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -32,6 +33,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <Script
+          src="https://quge5.com/88/tag.min.js"
+          data-zone="206851"
+          strategy="afterInteractive"
+          data-cfasync="false"
+        />
+      </head>
       <body className="antialiased">
         {children}
         <Analytics />
