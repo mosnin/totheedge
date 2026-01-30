@@ -12,8 +12,39 @@ import {
   resetAdState,
   BANNER_ZONE_ID,
   BANNER_INTERVAL,
-  serveBannerAd,
 } from "./adManager";
+
+// Standalone banner ad component — uses DOM manipulation so the ad provider
+// can freely own the <ins> element without React interfering on re-render.
+function BannerAd() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    // Create the <ins> element exactly as ExoClick's snippet specifies
+    const ins = document.createElement("ins");
+    ins.className = "eas6a97888e2";
+    ins.setAttribute("data-zoneid", BANNER_ZONE_ID);
+    ins.style.display = "block";
+    ins.style.width = "728px";
+    ins.style.maxWidth = "100%";
+    ins.style.height = "90px";
+    el.appendChild(ins);
+
+    // Replicate ExoClick's inline serve script:
+    // (AdProvider = window.AdProvider || []).push({"serve": {}});
+    window.AdProvider = window.AdProvider || [];
+    window.AdProvider.push({ serve: {} });
+
+    return () => {
+      el.innerHTML = "";
+    };
+  }, []);
+
+  return <div ref={ref} className="flex items-center justify-center py-3 my-2" />;
+}
 
 // Sophia's unlockable photos
 const SOPHIA_PHOTOS = [
@@ -96,14 +127,6 @@ export default function ChatPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  // Serve inline banner ads when new banner slots appear in the message list
-  useEffect(() => {
-    if (messages.length >= BANNER_INTERVAL) {
-      const timer = setTimeout(() => serveBannerAd(), 100);
-      return () => clearTimeout(timer);
-    }
-  }, [messages.length]);
 
   const handleDismissInstructions = () => {
     sessionStorage.setItem("seenInstructions", "true");
@@ -334,15 +357,7 @@ export default function ChatPage() {
           {messages.map((message, index) => (
             <div key={index}>
               {/* Inline banner ad every BANNER_INTERVAL messages */}
-              {index > 0 && index % BANNER_INTERVAL === 0 && (
-                <div className="flex items-center justify-center overflow-hidden py-3 my-2">
-                  <ins
-                    className="eas6a97888e2"
-                    data-zoneid={BANNER_ZONE_ID}
-                    style={{ display: "block", width: "728px", maxWidth: "100%", height: "90px" }}
-                  ></ins>
-                </div>
-              )}
+              {index > 0 && index % BANNER_INTERVAL === 0 && <BannerAd />}
               <div
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
