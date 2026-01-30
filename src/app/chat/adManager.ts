@@ -1,6 +1,6 @@
 // ExoClick Ad Manager for Chat Integration
 // Zone IDs:
-//   Banner:       5841084 (footer banner, every 4-5 user messages)
+//   Banner:       5841084 (728x90 inline banner, every 5-7 messages)
 //   Interstitial: 5841074 (fullpage, every 12-15 messages or denial keywords)
 //   Unlock Video: 5841076 (VAST rewarded video at denial peaks)
 
@@ -21,7 +21,7 @@ export const BANNER_ZONE_ID = AD_ZONES.banner;
 
 const VAST_URL = `https://s.magsrv.com/v1/vast.php?idzone=${AD_ZONES.unlock}`;
 
-const BANNER_INTERVAL = 4; // show banner every N user messages (4-5)
+export const BANNER_INTERVAL = 6; // show inline banner every N messages (5-7)
 const INTERSTITIAL_INTERVAL = 12; // show interstitial every N messages (12-15)
 const INTERSTITIAL_CAP_MS = 5 * 60 * 1000; // 5 min frequency cap
 const UNLOCK_CAP_MS = 10 * 60 * 1000; // 10 min frequency cap
@@ -69,7 +69,7 @@ function trackEvent(type: string, zone?: string) {
 function checkAdblock(): boolean {
   try {
     const testEl = document.createElement("ins");
-    testEl.className = "eas6a97888e35";
+    testEl.className = "eas6a97888e2";
     testEl.style.cssText =
       "display:block!important;position:absolute;left:-9999px;";
     document.body.appendChild(testEl);
@@ -170,7 +170,7 @@ export function createInterstitialContainer(): HTMLDivElement {
     "width:100%;max-width:480px;min-height:250px;display:flex;align-items:center;justify-content:center;";
 
   const ins = document.createElement("ins");
-  ins.className = "eas6a97888e35";
+  ins.className = "eas6a97888e2";
   ins.setAttribute("data-zoneid", AD_ZONES.interstitial);
 
   adContainer.appendChild(ins);

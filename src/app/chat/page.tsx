@@ -11,6 +11,7 @@ import {
   showUnlockOverlay,
   resetAdState,
   BANNER_ZONE_ID,
+  BANNER_INTERVAL,
   serveBannerAd,
 } from "./adManager";
 
@@ -65,7 +66,6 @@ export default function ChatPage() {
   const [showInstructions, setShowInstructions] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
   const [unlockedPhotoIndex, setUnlockedPhotoIndex] = useState(0);
-  const [bannerVisible, setBannerVisible] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -73,10 +73,6 @@ export default function ChatPage() {
   const processAdTriggers = useCallback(
     (aiResponse: string, currentMessages: Message[]) => {
       const actions = onAiResponse(aiResponse);
-
-      if (actions.showBanner) {
-        setBannerVisible(true);
-      }
 
       if (actions.showInterstitial) {
         // Small delay so the message renders first
@@ -121,12 +117,13 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Serve banner ad when it becomes visible (after React renders the <ins> element)
+  // Serve inline banner ads when new banner slots appear in the message list
   useEffect(() => {
-    if (bannerVisible) {
-      serveBannerAd();
+    if (messages.length >= BANNER_INTERVAL) {
+      const timer = setTimeout(() => serveBannerAd(), 100);
+      return () => clearTimeout(timer);
     }
-  }, [bannerVisible]);
+  }, [messages.length]);
 
   const handleDismissInstructions = () => {
     sessionStorage.setItem("seenInstructions", "true");
@@ -207,7 +204,6 @@ export default function ChatPage() {
     setHasStarted(false);
     setUnlockedPhotoIndex(0);
     resetAdState();
-    setBannerVisible(false);
   };
 
   const handleUnlockPhoto = () => {
@@ -357,6 +353,16 @@ export default function ChatPage() {
 
           {messages.map((message, index) => (
             <div key={index}>
+              {/* Inline banner ad every BANNER_INTERVAL messages */}
+              {index > 0 && index % BANNER_INTERVAL === 0 && (
+                <div className="flex items-center justify-center overflow-hidden py-3 my-2">
+                  <ins
+                    className="eas6a97888e2"
+                    data-zoneid={BANNER_ZONE_ID}
+                    style={{ display: "block", width: "728px", maxWidth: "100%", height: "90px" }}
+                  ></ins>
+                </div>
+              )}
               <div
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
@@ -505,13 +511,6 @@ export default function ChatPage() {
           )}
         </div>
       </footer>
-
-      {/* Banner Ad Slot */}
-      {bannerVisible && (
-        <div className="flex items-center justify-center overflow-hidden min-h-[50px] py-2">
-          <ins className="eas6a97888e35" data-zoneid={BANNER_ZONE_ID}></ins>
-        </div>
-      )}
 
       {/* Popunder Ad - only loads on chat page so it doesn't interfere with age verification */}
       <Script
