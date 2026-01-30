@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -34,7 +33,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <Script id="exoclick-ad-provider" src="https://a.magsrv.com/ad-provider.js" strategy="afterInteractive" async />
         {children}
         <Analytics />
       </body>

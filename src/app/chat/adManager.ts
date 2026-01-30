@@ -89,8 +89,14 @@ function ensureAdProvider() {
   if (state.adProviderLoaded) return;
   if (typeof window === "undefined") return;
 
-  // ad-provider.js is already loaded globally in layout.tsx
-  // Just mark as loaded
+  // Load ad-provider.js via plain DOM if not already present
+  if (!document.querySelector('script[src*="ad-provider.js"]')) {
+    const s = document.createElement("script");
+    s.async = true;
+    s.type = "application/javascript";
+    s.src = "https://a.magsrv.com/ad-provider.js";
+    document.head.appendChild(s);
+  }
   state.adProviderLoaded = true;
 }
 

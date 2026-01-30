@@ -14,8 +14,8 @@ import {
   BANNER_INTERVAL,
 } from "./adManager";
 
-// Standalone banner ad component — uses DOM manipulation so the ad provider
-// can freely own the <ins> element without React interfering on re-render.
+// Banner ad component — loads ad-provider.js via plain DOM (not Next.js Script)
+// and replicates ExoClick's snippet exactly with zero deviation.
 function BannerAd() {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -23,17 +23,22 @@ function BannerAd() {
     const el = ref.current;
     if (!el) return;
 
-    // Create the <ins> element exactly as ExoClick's snippet specifies
+    // Step 1: Load ad-provider.js if not already present (plain <script> tag)
+    if (!document.querySelector('script[src*="ad-provider.js"]')) {
+      const s = document.createElement("script");
+      s.async = true;
+      s.type = "application/javascript";
+      s.src = "https://a.magsrv.com/ad-provider.js";
+      document.head.appendChild(s);
+    }
+
+    // Step 2: Create <ins> exactly as ExoClick provides — no extra attributes
     const ins = document.createElement("ins");
     ins.className = "eas6a97888e2";
-    ins.setAttribute("data-zoneid", BANNER_ZONE_ID);
-    ins.style.display = "block";
-    ins.style.width = "728px";
-    ins.style.maxWidth = "100%";
-    ins.style.height = "90px";
+    ins.setAttribute("data-zoneid", "5841084");
     el.appendChild(ins);
 
-    // Replicate ExoClick's inline serve script:
+    // Step 3: Serve — exact replica of ExoClick's inline script:
     // (AdProvider = window.AdProvider || []).push({"serve": {}});
     window.AdProvider = window.AdProvider || [];
     window.AdProvider.push({ serve: {} });
@@ -43,7 +48,12 @@ function BannerAd() {
     };
   }, []);
 
-  return <div ref={ref} className="flex items-center justify-center py-3 my-2" />;
+  return (
+    <div
+      ref={ref}
+      style={{ width: "100%", maxWidth: "728px", minHeight: "90px", margin: "12px auto", textAlign: "center" }}
+    />
+  );
 }
 
 // Sophia's unlockable photos
