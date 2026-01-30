@@ -71,35 +71,15 @@ export default function ChatPage() {
 
   // Process ad triggers after AI responds
   const processAdTriggers = useCallback(
-    (aiResponse: string, currentMessages: Message[]) => {
+    (aiResponse: string) => {
       const actions = onAiResponse(aiResponse);
 
       if (actions.showInterstitial) {
         // Small delay so the message renders first
         setTimeout(() => showInterstitial(), 500);
       }
-
-      if (
-        actions.showUnlockPrompt &&
-        unlockedPhotoIndex < SOPHIA_PHOTOS.length
-      ) {
-        const nextPhotoUrl = SOPHIA_PHOTOS[unlockedPhotoIndex];
-        setTimeout(() => {
-          showUnlockOverlay(nextPhotoUrl, (result) => {
-            if (result.completed && result.photoUrl) {
-              const photoMessage: Message = {
-                role: "assistant",
-                content: result.photoUrl,
-                isPhoto: true,
-              };
-              setMessages([...currentMessages, photoMessage]);
-              setUnlockedPhotoIndex((prev) => prev + 1);
-            }
-          });
-        }, 1000);
-      }
     },
-    [unlockedPhotoIndex],
+    [],
   );
 
   useEffect(() => {
@@ -170,7 +150,7 @@ export default function ChatPage() {
       setMessages(updatedMessages);
 
       // Process ad triggers based on AI response
-      processAdTriggers(data.message, updatedMessages);
+      processAdTriggers(data.message);
     } catch {
       setMessages([
         ...newMessages,
